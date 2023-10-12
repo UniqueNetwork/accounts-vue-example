@@ -8,10 +8,9 @@
   const error = ref<boolean>(false);
 
   const onSignClick = () => {
-    try {
-      SignModalProps.keyringPair?.unlock(password.value);
+    if(password.value && SignModalProps.openCallback?.(password.value)) {
       SignModalProps.onSign?.();
-    } catch (e) {
+    } else {
       error.value = true;
     }
   }

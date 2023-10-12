@@ -1,17 +1,15 @@
-import { getLocalAccounts, getPolkadotAccounts, getMetamaskAccount } from "@/accounts/AccountsManager";
-import { type KeyringPair } from "@polkadot/keyring/types";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
 export const useSignModalIsVisibleStore = defineStore('signModalIsVisible', () => {
   const isVisible = ref<boolean>();
-  const keyringPair = ref<KeyringPair>();
   const onSign = ref<() => void>();
   const onClose = ref<() => void>();
+  const openCallback = ref<(passphrase: string) => boolean>()
 
-  const showModal = async (pair: KeyringPair) => {
+  const showModal = async (cb: (passphrase: string) => boolean) => {
     isVisible.value = true;
-    keyringPair.value = pair;
+    openCallback.value = cb;
     return new Promise<void>((resolve, reject) => {
       onSign.value = () => {
         isVisible.value = false;
@@ -28,8 +26,8 @@ export const useSignModalIsVisibleStore = defineStore('signModalIsVisible', () =
 
   return {
     isVisible,
-    keyringPair,
     showModal,
+    openCallback,
     onSign,
     closeModal,
   }

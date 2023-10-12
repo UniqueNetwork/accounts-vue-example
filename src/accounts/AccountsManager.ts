@@ -1,10 +1,10 @@
-import keyring from "@polkadot/ui-keyring";
-import { type AskPassphraseCallback, KeyringSigner } from "./KeyringSigner";
 import { type Account, SignerTypeEnum } from "./types";
-import { Polkadot, Ethereum } from '@unique-nft/utils/extension';
 import { ethers, Signer as EthersSigner } from "ethers";
-
-keyring.loadAll({ type: 'ed25519' });
+import { LocalAccountSigner, type AskPassphraseCallback, NONCE } from "./LocalAccountSigner";
+import { Polkadot, Ethereum } from '@unique-nft/utils/extension';
+import { Address, StringUtils } from "@unique-nft/utils";
+import { Sr25519Account } from "@unique-nft/sdk/sr25519";
+import { secretbox } from 'tweetnacl-ts';
 
 /**
  * @func getLocalAccounts
@@ -13,22 +13,25 @@ keyring.loadAll({ type: 'ed25519' });
  * @returns Map<string, Account>
  */
 export const getLocalAccounts = (askPassphraseCallback: AskPassphraseCallback) => {
+  const accounts = new Map<string, Account>();
+  for (let index = 0; index < localStorage.length; index++) {
+    const key = localStorage.key(index);
+    if(key && /^account:/.test(key)){
+      const value = localStorage.getItem(key);
+      if(!value) break;
+      const address = key.split(':')[1];
+      const { name, secret } = JSON.parse(value);
+      
+      accounts.set(address,  {
+        name,
+        address,
+        signerType: SignerTypeEnum.Local,
+        signer: new LocalAccountSigner(secret, askPassphraseCallback)
+      });
+    }
+  }
 
-  const keyringAddresses = keyring.getAccounts();
-  
-  return new Map<string, Account>(
-    keyringAddresses.map(({ address, meta,  }) => {
-      return [
-        address, // address as map key
-        {
-            name: meta.name || "untitled",
-            address: address,
-            signerType: SignerTypeEnum.Local,
-            signer: new KeyringSigner(address, askPassphraseCallback)
-        }
-      ]
-    })
-  );
+  return accounts;
 };
 
 /**
@@ -109,3 +112,21 @@ export const getMetamaskAccount = async () => {
 
 export const isEthersSigner = (signer: any): signer is EthersSigner =>
   (signer instanceof EthersSigner);
+
+
+export const addLocalAccount = (name: string, mnemonicPhrase: string, passphrase: string) => {
+  const passwordHash = Address.algorithms.keccak_256(passphrase)
+
+  const { address } = Sr25519Account.fromUri(mnemonicPhrase); 
+  
+  const secret = secretbox(
+    StringUtils.Utf8.stringToU8a(mnemonicPhrase), 
+    NONCE, 
+    passwordHash
+  );
+
+  localStorage.setItem(`account:${address}`, JSON.stringify({ 
+    name, 
+    secret: StringUtils.HexString.fromU8a(secret) 
+  }));
+}

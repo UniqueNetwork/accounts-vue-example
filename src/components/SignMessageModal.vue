@@ -3,9 +3,9 @@
   import { ref } from 'vue';
   import Modal from './Modal.vue';
   import { SignerTypeEnum, type Account } from '../accounts/types';
-  import { KeyringSigner } from '../accounts/KeyringSigner';
   import type { SignerResult } from '@unique-nft/utils/extension';
   import { type Signer as EthersSigner } from "ethers";
+import type { LocalAccountSigner } from '@/accounts/LocalAccountSigner';
 
   const props = defineProps<{
     isVisible: boolean,
@@ -26,7 +26,7 @@
 
     switch (props.currentAccount.signerType) {
       case SignerTypeEnum.Local: 
-        signature = await (props.currentAccount.signer as KeyringSigner).signMessage(message.value); 
+        signature = await (props.currentAccount.signer as LocalAccountSigner).signMessage(message.value); 
         break;
       case SignerTypeEnum.Polkadot: 
         const result = await props.currentAccount.signer.signMessage?.(message.value) as SignerResult; 

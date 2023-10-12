@@ -10,8 +10,6 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false"
   },
   "dependencies": {
-    "@polkadot/keyring": "^12.5.1",
-    "@polkadot/ui-keyring": "^3.6.3",
     "@unique-nft/sdk": "^0.2.21",
     "@unique-nft/solidity-interfaces": "^0.57.1",
     "@unique-nft/sr25519": "^0.0.1",
@@ -20,6 +18,7 @@
     "i": "^0.3.7",
     "npm": "^10.2.0",
     "pinia": "^2.1.6",
+    "tweetnacl-ts": "^1.0.3",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4"
   },

@@ -2,9 +2,9 @@
 <script setup lang="ts">
   import { ref } from 'vue';
   import Modal from './Modal.vue';
-  import keyring from '@polkadot/ui-keyring';
   import { useAccountsStore } from '@/stores/accounts';
-  import { mnemonicGenerate } from '@polkadot/util-crypto';
+  import { addLocalAccount } from '@/accounts/AccountsManager';
+  import { Sr25519Account } from '@unique-nft/sr25519';
 
   const { getAccounts } = useAccountsStore()
 
@@ -19,15 +19,14 @@
   const password = ref<string>();
 
   const onGenerateClick = () => {
-    mnemonic.value = mnemonicGenerate(12);
+    mnemonic.value = Sr25519Account.generateMnemonic(12);
   }
 
   const onCreateClick = async () => {
     if(!mnemonic.value) return;
     if (!mnemonic.value || !name.value || !password.value) return;
 
-    keyring.addUri(mnemonic.value, password.value, { name: name.value });
-
+    addLocalAccount(name.value, mnemonic.value, password.value);
     await getAccounts();
 
     emit('close');
